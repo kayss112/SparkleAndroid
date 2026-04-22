@@ -1,0 +1,69 @@
+# ── Build system artifacts ───────────────────────────────────────────────────
+
+# Gradle project-level cache
+build_system/android/build/
+
+# Gradle app intermediates, APKs, compiled .so (~3.1 GB)
+build_system/android/app/build/
+
+# Compiled shaders (SPIR-V), staged native libs, asset copies (~3.4 GB)
+build_system/android/output/
+
+# Assets are auto-copied from output at build time
+build_system/android/app/src/main/assets/
+
+# Downloaded Vulkan validation layers binary — re-fetched by prerequisites.py
+build_system/android/android-validation-binaries.zip
+
+# Prerequisites download/install cache (Vulkan SDK, Slang, CMake, Ninja, NDK)
+build_cache/
+
+# Generic CMake/IDE build dirs
+out/
+build/
+cmake-build-*/
+
+# ── Resources ────────────────────────────────────────────────────────────────
+
+# Packed game assets downloaded by resources/setup.py (~99 MB)
+resources/packed/
+resources/resources.zip
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+
+# ── Android / Gradle ─────────────────────────────────────────────────────────
+*.apk
+*.aab
+.gradle/
+local.properties
+
+# ── C++ ──────────────────────────────────────────────────────────────────────
+*.o
+*.a
+*.so
+compile_commands.json
+.cache/
+
+# ── IDE / OS ─────────────────────────────────────────────────────────────────
+.claude
+.vscode
+.vs
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+models
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# ── Docs generated for this project ──────────────────────────────────────────
+CLAUDE.md
+BUILD.md

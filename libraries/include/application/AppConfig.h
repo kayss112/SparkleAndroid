@@ -1,0 +1,43 @@
+#pragma once
+
+#include "application/ConfigCollection.h"
+
+namespace sparkle
+{
+struct AppConfig : public ConfigCollection
+{
+    enum class NativePlatform : uint8_t
+    {
+        Windows,
+        MacOS,
+        iOS,
+        Android
+    };
+
+    void Init();
+
+    const char *app_name = "Sparkle";
+    NativePlatform platform;
+    std::string scene;
+    uint32_t max_threads;
+    bool show_screen_log;
+    bool rebuild_cache;
+    bool default_skybox;
+    bool render_thread;
+    bool load_last_session;
+    bool headless;
+
+#if ENABLE_TEST_CASES
+    std::string test_case;
+    uint32_t test_timeout = 0;
+#endif
+
+protected:
+    void Validate() override
+    {
+    }
+
+private:
+    friend class AppFramework;
+};
+} // namespace sparkle
