@@ -1,0 +1,3 @@
+- [x] meson.build
+- [ ] bring in murmur from https://github.com/aappleby/smhasher
+- [ ] Adapt `test` to the new repo structure and add meson tests there.
