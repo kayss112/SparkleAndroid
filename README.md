@@ -6,5 +6,9 @@ python build.py --framework glfw --generate_only
 生成Release版本：python build.py --framework --config Release
 生成Debug版本：python build.py --framework --config Debug
 生成的apk在文件夹：.\build_system\android\app\build\outputs\apk
+## 环境变量
+vulkan
+vcpkg
+AndroidSDK
 
 

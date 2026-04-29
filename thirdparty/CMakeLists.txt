@@ -36,6 +36,19 @@ if (GLFW)
         imgui/backends/imgui_impl_glfw.cpp
         imgui/backends/imgui_impl_glfw.h
     )
+elseif (MACOS)
+    FILE(GLOB IMGUI_SOURCES
+        imgui/backends/imgui_impl_metal.mm
+        imgui/backends/imgui_impl_metal.h
+        imgui/backends/imgui_impl_osx.mm
+        imgui/backends/imgui_impl_osx.h
+    )
+elseif (IOS)
+    FILE(GLOB IMGUI_SOURCES
+        imgui/backends/imgui_impl_metal.mm
+        imgui/backends/imgui_impl_metal.h
+        #ios platform support is located at platforms/source/iOS
+    )
 elseif (ANDROID)
     FILE(GLOB IMGUI_SOURCES
         imgui/backends/imgui_impl_vulkan.cpp
