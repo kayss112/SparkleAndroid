@@ -102,7 +102,7 @@ def check_environment(args):
 def run_git_submodule_update():
     print("Updating git submodules...")
     subprocess.run(
-        ["git", "submodule", "update", "--init", "--recursive"],
+        ["git", "submodule", "update", "--init", "--recursive","--force"],
         check=True
     )
 
