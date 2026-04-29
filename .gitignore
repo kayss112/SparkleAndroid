@@ -54,3 +54,6 @@ __pycache__/
 build_cache/
 
 imgui.ini
+
+build_system/glfw/
+build_system/android/
