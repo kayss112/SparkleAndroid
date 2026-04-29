@@ -67,3 +67,5 @@ models
 # ── Docs generated for this project ──────────────────────────────────────────
 CLAUDE.md
 BUILD.md
+build_system/glfw/
+build_system/android/
