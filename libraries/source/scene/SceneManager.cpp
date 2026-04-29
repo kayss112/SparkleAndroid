@@ -125,7 +125,7 @@ static std::shared_ptr<TaskFuture<>> LoadSceneFromFile(Scene *scene, const Path 
 
 static std::shared_ptr<TaskFuture<>> LoadTestScene(Scene *scene)
 {
-    Log(Info, "Loading standard scene");
+    Log(Info, "Loading standard scene55555555555555");
 
     auto *scene_root = scene->GetRootNode();
 
