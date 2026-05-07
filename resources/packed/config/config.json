@@ -1,7 +1,7 @@
 {
-    "bounce": 4,
+    "bounce": 8,
     "max_spp": 2048,
-    "pipeline": "forward",
+    "pipeline": "gpu",
     "msaa": 1,
     "prepass": false,
     "progress": true,
