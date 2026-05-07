@@ -168,21 +168,21 @@ static std::shared_ptr<TaskFuture<>> LoadTestScene(Scene *scene)
 
 
     auto water_bottle_task =SceneDataFactory::Load(Path::Resource("models/WaterBottle/WaterBottle.gltf"), scene)
-            ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
+            ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                 if (node)
                 {
                     node->SetTransform({-4.f, -4.f, 2.7f}, {0, 0, utilities::ToRadian(-30.f)}, Ones * 2.f);
-                    scene_root->AddChild(node);
+                    scene->GetRootNode()->AddChild(node);
                 }
             });
     model_tasks.emplace_back(water_bottle_task);
 
     auto boom_box_task = SceneDataFactory::Load(Path::Resource("models/BoomBox/BoomBox.gltf"), scene)
-                             ->Then([scene_root](const std::shared_ptr<SceneNode> &node) {
+                             ->Then([scene](const std::shared_ptr<SceneNode> &node) {
                                  if (node)
                                  {
                                      node->SetTransform({5.f, 4.f, 3.f}, {0, 0, utilities::ToRadian(30.f)}, Ones * 3.f);
-                                     scene_root->AddChild(node);
+                                     scene->GetRootNode()->AddChild(node);
                                  }
                              });
     model_tasks.emplace_back(boom_box_task);
@@ -203,7 +203,7 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
 {
     Log(Info, "Loading standard Vivo scene");
 
-    auto *scene_root = scene->GetRootNode();
+    //auto *scene_root = scene->GetRootNode();
 
     auto *main_camera = static_cast<OrbitCameraComponent *>(scene->GetMainCamera());
     main_camera->Setup(Zeros, 25.f, 10.f, -20.f);
@@ -219,17 +219,17 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
     std::vector<std::shared_ptr<TaskFuture<>>> model_tasks;
 
     auto BackGround = SceneDataFactory::Load(Path::Resource("models/Test/BackGround.gltf"), scene)
-                          ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
+                          ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                               if (node)
                               {
                                   node->SetTransform({0, 0, 0}, {0, 0, 0}, Ones * 2.f);
-                                  scene_root->AddChild(node);
+                                  scene->GetRootNode()->AddChild(node);
                               }
                           });
     model_tasks.emplace_back(BackGround);
 
     auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Buttons.gltf"), scene)
-                       ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
+                       ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                            if (node)
                            {
                                node->Traverse([&glass_material](SceneNode *n) {
@@ -242,7 +242,7 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                                    }
                                });
                                node->SetTransform({0, -6.5, 5.0}, {0, 0, 0}, Ones * 2.f);
-                               scene_root->AddChild(node);
+                               scene->GetRootNode()->AddChild(node);
                            }
                        });
     model_tasks.emplace_back(Buttons);

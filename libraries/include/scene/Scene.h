@@ -5,6 +5,7 @@
 #include <atomic>
 #include <memory>
 #include <unordered_map>
+#include <mutex>
 #include <unordered_set>
 
 namespace sparkle
@@ -120,5 +121,8 @@ private:
     SkyLight *sky_light_ = nullptr;
 
     std::atomic<int32_t> pending_async_tasks_{0};
+
+    //Jia Suo
+    mutable std::mutex mutex_;
 };
 } // namespace sparkle

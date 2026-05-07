@@ -91,6 +91,15 @@ void Scene::RecreateRenderProxy()
 
     Log(Info, "Recreating render proxy for the whole scene");
 
+    std::vector<Material *> materials_t;
+    {
+        std::lock_guard lock(mutex_);
+        for (auto *m : material_usage_ | std::views::keys)
+        {
+            materials_t.push_back(m);
+        }
+    }
+
     root_node_->Traverse([](SceneNode *node) {
         for (const auto &component : node->GetComponents())
         {
@@ -101,14 +110,14 @@ void Scene::RecreateRenderProxy()
         }
     });
 
-    for (auto *material : material_usage_ | std::views::keys)
+    for (auto *material : materials_t)
     {
         material->DestroyRenderProxy();
     }
 
     render_proxy_ = CreateRenderProxy();
 
-    for (auto *material : material_usage_ | std::views::keys)
+    for (auto *material : materials_t)
     {
         render_proxy_->AddMaterial(material->CreateRenderProxy());
     }
@@ -160,6 +169,7 @@ void Scene::Cleanup()
 
 void Scene::UnregisterMaterial(const std::shared_ptr<Material> &material)
 {
+    std::lock_guard lock(mutex_);
     auto *material_ptr = material.get();
 
     if (!material_usage_.contains(material_ptr))
@@ -183,6 +193,7 @@ void Scene::UnregisterMaterial(const std::shared_ptr<Material> &material)
 
 void Scene::RegisterMaterial(Material *material)
 {
+    std::lock_guard lock(mutex_);
     if (!material_usage_.contains(material))
     {
         TaskManager::RunInRenderThread(
