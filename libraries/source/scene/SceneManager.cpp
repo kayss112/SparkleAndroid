@@ -141,113 +141,60 @@ static std::shared_ptr<TaskFuture<>> LoadTestScene(Scene *scene)
     auto glass_material = material_manager.GetOrCreateMaterial<DieletricMaterial>({.eta = 1.6f, .name = "Glass"});
 
     // basic primitives
-    //{
-    //    auto [node, primitive] = MakeNodeWithComponent<MeshPrimitive>(scene, scene_root, "floor", Mesh::GetUnitCube());
-    //    node->SetTransform(Up * -0.001f, Zeros, {50.f, 50.f, 0.001f});
-    //    primitive->SetMaterial(white_marble_material);
-    //}
+    {
+        auto [node, primitive] = MakeNodeWithComponent<MeshPrimitive>(scene, scene_root, "floor", Mesh::GetUnitCube());
+        node->SetTransform(Up * -0.001f, Zeros, {50.f, 50.f, 0.001f});
+        primitive->SetMaterial(white_marble_material);
+    }
 
-    //{
-    //    auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "glass sphere");
-    //    node->SetTransform({0.f, 0.f, 2.f}, Zeros, Ones * 2.f);
-    //    primitive->SetMaterial(glass_material);
-    //}
-    //{
-    //    auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "lambert sphere");
-    //    node->SetTransform({-4.f, 4.f, 2.f}, Zeros, Ones * 2.f);
-    //    primitive->SetMaterial(white_marble_material);
-    //}
-    //{
-    //    auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "gold sphere");
-    //    node->SetTransform({4.f, -4.f, 2.f}, Zeros, Ones * 2.f);
-    //    primitive->SetMaterial(material_manager.GetMetalMaterials()[MaterialManager::GOLD]);
-    //}
+    {
+        auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "glass sphere");
+        node->SetTransform({0.f, 0.f, 2.f}, Zeros, Ones * 2.f);
+        primitive->SetMaterial(glass_material);
+    }
+    {
+        auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "lambert sphere");
+        node->SetTransform({-4.f, 4.f, 2.f}, Zeros, Ones * 2.f);
+        primitive->SetMaterial(white_marble_material);
+    }
+    {
+        auto [node, primitive] = MakeNodeWithComponent<SpherePrimitive>(scene, scene_root, "gold sphere");
+        node->SetTransform({4.f, -4.f, 2.f}, Zeros, Ones * 2.f);
+        primitive->SetMaterial(material_manager.GetMetalMaterials()[MaterialManager::GOLD]);
+    }
 
     // models
     std::vector<std::shared_ptr<TaskFuture<>>> model_tasks;
 
-    //auto loaded_node = std::make_shared<GLTFLoader>("models/WaterBottle/WaterBottle.gltf")->Load(scene);
-    //loaded_node->Traverse([&glass_material](SceneNode *node) {
-    //    for (auto& component : node->GetComponents())
-    //    {
-    //        if (auto *primitive = dynamic_cast<PrimitiveComponent *>(component.get()))
-    //        {
-    //            primitive->SetMaterial(glass_material);
-    //        }
-    //    }
-    //});
-    //loaded_node->SetTransform({-4.f, -4.f, 2.7f}, {0, 0, utilities::ToRadian(-30.f)}, Ones * 2.f);
-    //scene_root->AddChild(loaded_node);
-    //model_tasks.emplace_back(loaded_node);
 
-    //  auto water_bottle_task =SceneDataFactory::Load(Path::Resource("models/WaterBottle/WaterBottle.gltf"), scene)
-    //        ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
-    //            if (node)
-    //            {
-    //                node->Traverse([&glass_material](SceneNode *n) {
-    //                    for (auto &component : n->GetComponents())
-    //                        if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
-    //                            p->SetMaterial(glass_material);
-    //                });
-    //                node->SetTransform({-4.f, -4.f, 2.7f}, {0, 0, utilities::ToRadian(-30.f)}, Ones * 2.f);
-    //                scene_root->AddChild(node);
-    //            }
-    //        });
-    //model_tasks.emplace_back(water_bottle_task);
-
-    auto BackGround =
-        SceneDataFactory::Load(Path::Resource("models/Test/BackGround.gltf"), scene)
+    auto water_bottle_task =SceneDataFactory::Load(Path::Resource("models/WaterBottle/WaterBottle.gltf"), scene)
             ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
                 if (node)
                 {
-     /*               node->Traverse([&glass_material](SceneNode *n) {
-                        for (auto &component : n->GetComponents())
-                            if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
-                                p->SetMaterial(glass_material);
-                    });*/
-                    node->SetTransform({0, 0, 0}, {0, 0, 0}, Ones * 2.f);
+                    node->SetTransform({-4.f, -4.f, 2.7f}, {0, 0, utilities::ToRadian(-30.f)}, Ones * 2.f);
                     scene_root->AddChild(node);
                 }
             });
-    model_tasks.emplace_back(BackGround);
+    model_tasks.emplace_back(water_bottle_task);
 
-    auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Buttons.gltf"), scene)
-        ->Then([scene_root, glass_material](const std::shared_ptr<SceneNode> &node) {
-            if (node)
-            {
-                node->Traverse([&glass_material](SceneNode *n) {
-                    for (auto &component : n->GetComponents())
-                    {
-                        if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
-                        {
-                            p->SetMaterial(glass_material);
-                        }
-                    }
-                });
-                node->SetTransform({0, -6.5, 5.0}, {0, 0, 0}, Ones * 2.f);
-                scene_root->AddChild(node);
-                }
-            });
-    model_tasks.emplace_back(Buttons);
-
-    //auto boom_box_task = SceneDataFactory::Load(Path::Resource("models/BoomBox/BoomBox.gltf"), scene)
-    //                         ->Then([scene_root](const std::shared_ptr<SceneNode> &node) {
-    //                             if (node)
-    //                             {
-    //                                 node->SetTransform({5.f, 4.f, 3.f}, {0, 0, utilities::ToRadian(30.f)}, Ones * 3.f);
-    //                                 scene_root->AddChild(node);
-    //                             }
-    //                         });
-    //model_tasks.emplace_back(boom_box_task);
+    auto boom_box_task = SceneDataFactory::Load(Path::Resource("models/BoomBox/BoomBox.gltf"), scene)
+                             ->Then([scene_root](const std::shared_ptr<SceneNode> &node) {
+                                 if (node)
+                                 {
+                                     node->SetTransform({5.f, 4.f, 3.f}, {0, 0, utilities::ToRadian(30.f)}, Ones * 3.f);
+                                     scene_root->AddChild(node);
+                                 }
+                             });
+    model_tasks.emplace_back(boom_box_task);
 
     auto models_loaded = TaskManager::OnAll(model_tasks);
     auto last_task_finished = models_loaded;
 
-    // append a bunch of random spheres to the task chain
-    //for (int i = 0; i < 10; i++)
-    //{
-    //    last_task_finished = last_task_finished->Then([scene]() { SceneManager::GenerateRandomSpheres(*scene, 1); });
-    //}
+     //append a bunch of random spheres to the task chain
+    for (int i = 0; i < 10; i++)
+    {
+        last_task_finished = last_task_finished->Then([scene]() { SceneManager::GenerateRandomSpheres(*scene, 1); });
+    }
 
     return last_task_finished;
 }
