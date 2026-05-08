@@ -126,7 +126,7 @@ static std::shared_ptr<TaskFuture<>> LoadSceneFromFile(Scene *scene, const Path 
 
 static std::shared_ptr<TaskFuture<>> LoadTestScene(Scene *scene)
 {
-    Log(Info, "Loading standard scene55555555555555");
+    Log(Info, "Loading standard scene");
 
     auto *scene_root = scene->GetRootNode();
 
@@ -232,6 +232,8 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                        ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                            if (node)
                            {
+                               node->SetTransform({0, -6.5, 5.0}, {0, 0, 0}, Ones * 2.f);
+                               scene->GetRootNode()->AddChild(node);
                                node->Traverse([&glass_material](SceneNode *n) {
                                    for (auto &component : n->GetComponents())
                                    {
@@ -241,8 +243,6 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                                        }
                                    }
                                });
-                               node->SetTransform({0, -6.5, 5.0}, {0, 0, 0}, Ones * 2.f);
-                               scene->GetRootNode()->AddChild(node);
                            }
                        });
     model_tasks.emplace_back(Buttons);
