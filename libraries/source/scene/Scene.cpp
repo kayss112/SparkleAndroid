@@ -181,7 +181,7 @@ void Scene::UnregisterMaterial(const std::shared_ptr<Material> &material)
 
     if (material_usage_[material_ptr] == 0)
     {
-        // we copy the shared_ptr in the lambda to keep the material living until proper cleanup
+        // we copy the shared_ptr in the lambda to keep the material living until proper clean
         TaskManager::RunInRenderThread([scene = GetRenderProxy(), material]() {
             scene->RemoveMaterial(material->GetRenderProxy());
             material->DestroyRenderProxy();
