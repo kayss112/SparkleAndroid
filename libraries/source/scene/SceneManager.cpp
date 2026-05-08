@@ -362,8 +362,13 @@ void SceneManager::DrawUi(Scene *scene, bool need_default_sky, bool need_default
     }
 
     static auto cached_model_dirs = file_manager->ListDirectory(Path::Resource("models"));
-    for (const auto &entry : cached_model_dirs)
+    for (const Path &entry : cached_model_dirs)
     {
+        if (entry.path.filename() == "Test" || entry.path.filename() == "VivoTest")
+        {
+            continue;
+        }
+
         bool is_current_scene = scene->GetRootNode()->GetName() == entry.path;
 
         if (ImGui::Selectable(entry.path.filename().string().c_str(), is_current_scene))

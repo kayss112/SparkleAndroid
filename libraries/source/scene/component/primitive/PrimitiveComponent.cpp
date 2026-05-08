@@ -60,7 +60,7 @@ void PrimitiveComponent::SetMaterial(const std::shared_ptr<Material> &material)
         return;
     }
 
-    if (!node_)
+    if (!node_ || !node_->IsInScene())
     {
         material_ = material;
 
