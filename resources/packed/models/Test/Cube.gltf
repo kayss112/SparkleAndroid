@@ -15,27 +15,30 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
+			"name":"\u7acb\u65b9\u4f53",
 			"scale":[
-				0.24012108147144318,
-				3.4364233016967773,
-				1.7161699533462524
+				0.043451372534036636,
+				0.6254885196685791,
+				0.6390072703361511
 			],
 			"translation":[
-				0.21086947619915009,
-				0.5203571915626526,
-				0
+				0.5147745013237,
+				0.2448042333126068,
+				0.7767511010169983
 			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"\u6750\u8d28.001",
 			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":0
-				},
+				"baseColorFactor":[
+					0.800000011920929,
+					0.800000011920929,
+					0.800000011920929,
+					1
+				],
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -43,7 +46,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube",
+			"name":"\u7acb\u65b9\u4f53",
 			"primitives":[
 				{
 					"attributes":{
@@ -56,19 +59,6 @@
 					"material":0
 				}
 			]
-		}
-	],
-	"textures":[
-		{
-			"sampler":0,
-			"source":0
-		}
-	],
-	"images":[
-		{
-			"mimeType":"image/png",
-			"name":"screen",
-			"uri":"screen.png"
 		}
 	],
 	"accessors":[
@@ -145,16 +135,10 @@
 			"target":34963
 		}
 	],
-	"samplers":[
-		{
-			"magFilter":9729,
-			"minFilter":9987
-		}
-	],
 	"buffers":[
 		{
 			"byteLength":1224,
-			"uri":"BackGround.bin"
+			"uri":"Cube.bin"
 		}
 	]
 }

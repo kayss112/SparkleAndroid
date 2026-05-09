@@ -253,6 +253,60 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
     return last_task_finished;
 }
 
+static std::shared_ptr<TaskFuture<>> LoadVivoTestScene_2(Scene *scene)
+{
+    Log(Info, "Loading standard Vivo scene");
+
+    // auto *scene_root = scene->GetRootNode();
+
+    auto *main_camera = static_cast<OrbitCameraComponent *>(scene->GetMainCamera());
+    main_camera->Setup(Zeros, 25.f, 10.f, -20.f);
+
+    SceneManager::AddDefaultDirectionalLight(scene);
+
+    auto &material_manager = MaterialManager::Instance();
+
+    auto white_marble_material = material_manager.GetOrCreateMaterial<LambertianMaterial>({.name = "WhiteMarble"});
+    auto glass_material = material_manager.GetOrCreateMaterial<DieletricMaterial>({.eta = 1.6f, .name = "Glass"});
+
+    // models
+    std::vector<std::shared_ptr<TaskFuture<>>> model_tasks;
+
+    auto BackGround = SceneDataFactory::Load(Path::Resource("models/Test/BackGround.gltf"), scene)
+                          ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
+                              if (node)
+                              {
+                                  node->SetTransform({0, 0, 0}, {0, 0, 0}, Ones * 2.f);
+                                  scene->GetRootNode()->AddChild(node);
+                              }
+                          });
+    model_tasks.emplace_back(BackGround);
+
+    //auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Button.gltf"), scene)
+    //                   ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
+    //                       if (node)
+    //                       {
+    //                           node->SetTransform({0, -1.0, -2.0}, {0, 0, 0}, Ones * 2.f);
+    //                           scene->GetRootNode()->AddChild(node);
+    //                           node->Traverse([&glass_material](SceneNode *n) {
+    //                               for (auto &component : n->GetComponents())
+    //                               {
+    //                                   if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
+    //                                   {
+    //                                       p->SetMaterial(glass_material);
+    //                                   }
+    //                               }
+    //                           });
+    //                       }
+    //                   });
+    //model_tasks.emplace_back(Buttons);
+
+    auto models_loaded = TaskManager::OnAll(model_tasks);
+    auto last_task_finished = models_loaded;
+
+    return last_task_finished;
+}
+
 std::shared_ptr<TaskFuture<void>> SceneManager::LoadScene(Scene *scene, const Path &asset_path, bool need_default_sky,
                                                           bool need_default_lighting,
                                                           const std::string &scene_name)
@@ -402,6 +456,7 @@ void SceneManager::InitSceneList()
 {
     AddSceneToList("TestScene", LoadTestScene);
     AddSceneToList("VivoTestScene", LoadVivoTestScene);
+    AddSceneToList("VivoTestScene_2", LoadVivoTestScene_2);
 }
 
 } // namespace sparkle
