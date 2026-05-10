@@ -4,17 +4,29 @@
 
 namespace sparkle
 {
+// chy
+enum class ProjectionType : uint8_t
+{
+    Perspective,
+    Orthographic,
+};
+
 class CameraComponent : public RenderableComponent
 {
 public:
     // values that have physical meaning (reflects real camera attributes)
     struct Attribute
     {
+        // Perspective params
         float focal_length = 0.035f;  // 35mm
         float sensor_height = 0.024f; // full frame
         float aperture = 22.0f;
         float exposure = 1.f;
         float focus_distance = 1.f;
+
+        // chy
+        ProjectionType projection_type = ProjectionType::Perspective;
+        float ortho_width = 10.0f;  // Orthographic param
 
         void Print() const;
     };
@@ -39,6 +51,12 @@ public:
     void SetAperture(float aperture);
 
     void SetExposure(float exposure);
+
+    // chy
+    void SetProjectionType(ProjectionType type);
+
+    // chy
+    void SetOrthoWidth(float width);
 
 #pragma endregion
 

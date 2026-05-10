@@ -60,8 +60,17 @@ public:
         }
     }
 
+    // chy
     void OnScroll(float dx) override
     {
+        // chy
+        if (GetAttribute().projection_type == ProjectionType::Orthographic)
+        {
+            auto new_width = std::clamp((1.f + dx * sensitivity_) * GetAttribute().ortho_width, 1.0f, 100.0f);
+            SetOrthoWidth(new_width);
+            return;
+        }
+
         auto new_radius = std::clamp((1.f + dx * sensitivity_) * radius_, .001f, 100.f);
         if (std::abs(radius_ - new_radius) < Eps)
         {

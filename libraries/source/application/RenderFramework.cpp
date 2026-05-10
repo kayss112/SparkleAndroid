@@ -14,6 +14,7 @@
 #include "rhi/RHI.h"
 #include "scene/Scene.h"
 #include "scene/SceneNode.h"
+#include "scene/component/camera/CameraComponent.h" // chy
 
 #include <imgui.h>
 
@@ -462,5 +463,59 @@ void RenderFramework::DrawUi()
     {
         ImGui::TextWrapped(saving ? "Saving: %s" : "Saved: %s", last_saved_screenshot_path_.c_str());
     }
+
+    // chy
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextUnformatted("Camera");
+    ImGui::Separator();
+
+    auto *camera = scene_->GetMainCamera();
+    if (camera)
+    {
+        auto attr = camera->GetAttribute();
+
+        // chy: projection type combo
+        static const char *projection_names[] = {"Perspective", "Orthographic"};
+        int current_proj = static_cast<int>(attr.projection_type);
+        if (ImGui::Combo("Projection", &current_proj, projection_names, IM_ARRAYSIZE(projection_names)))
+        {
+            camera->SetProjectionType(static_cast<ProjectionType>(current_proj));
+        }
+
+        // chy: ortho width slider
+        if (camera->GetAttribute().projection_type == ProjectionType::Orthographic)
+        {
+            float ortho_width = attr.ortho_width;
+            if (ImGui::SliderFloat("Ortho Width", &ortho_width, 1.0f, 100.0f, "%.1f"))
+            {
+                camera->SetOrthoWidth(ortho_width);
+            }
+        }
+
+        ImGui::Spacing();
+
+        // exposure
+        float exposure = attr.exposure;
+        if (ImGui::SliderFloat("Exposure", &exposure, 0.01f, 10.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
+        {
+            camera->SetExposure(exposure);
+        }
+
+        // aperture
+        float aperture = attr.aperture;
+        if (ImGui::SliderFloat("Aperture", &aperture, 0.95f, 22.0f, "%.1f"))
+        {
+            camera->SetAperture(aperture);
+        }
+
+        // focus distance
+        float focus_dist = attr.focus_distance;
+        if (ImGui::SliderFloat("Focus Distance", &focus_dist, 0.01f, 100.0f, "%.2f"))
+        {
+            camera->SetFocusDistance(focus_dist);
+        }
+    }
+    // chy
 }
 } // namespace sparkle

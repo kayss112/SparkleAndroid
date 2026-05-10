@@ -43,14 +43,28 @@ void CameraComponent::SetFocusDistance(float focus_distance)
     UpdateRenderData();
 }
 
-// translate physical attributes to render attributes
+// chy: translate physical attributes to render attributes
 static auto CalculateRenderAttribute(const CameraComponent::Attribute &attribute)
 {
+    // chy
+    if (attribute.projection_type == ProjectionType::Orthographic) {
+        return CameraRenderProxy::Attribute{
+            .vertical_fov = 0.f, // no use in orthographic mode
+            .focus_distance = attribute.focus_distance,
+            .exposure = attribute.exposure,
+            .aperture_radius = 0.f, // Orthogonal projection has no depth of field
+            .projection_type = CameraRenderProxy::ProjectionType::Orthographic,
+            .ortho_width = attribute.ortho_width,
+        };
+    }
     return CameraRenderProxy::Attribute{
         .vertical_fov = 2.f * std::atan(attribute.sensor_height / (2.f * attribute.focal_length)),
         .focus_distance = attribute.focus_distance,
         .exposure = attribute.exposure,
         .aperture_radius = attribute.focal_length / attribute.aperture * 0.5f,
+        // chy
+        .projection_type = CameraRenderProxy::ProjectionType::Perspective,
+        .ortho_width = 0.f,         // no use in perspective mode
     };
 }
 
@@ -81,6 +95,26 @@ void CameraComponent::UpdateRenderData()
         TaskManager::RunInRenderThread(
             [this, render_attrib]() { GetRenderProxy()->As<CameraRenderProxy>()->UpdateAttribute(render_attrib); });
     }
+}
+
+// chy:switch projection type
+void CameraComponent::SetProjectionType(ProjectionType type)
+{
+    if (attribute_.projection_type == type) {
+        return;
+    }
+    attribute_.projection_type = type;
+    UpdateRenderData();
+}
+
+// chy:set the orthographic viewport width
+void CameraComponent::SetOrthoWidth(float width)
+{
+    if (std::abs(attribute_.ortho_width - width) < Eps) {
+        return;
+    }
+    attribute_.ortho_width = std::max(width, 0.001f);
+    UpdateRenderData();
 }
 
 void CameraComponent::Attribute::Print() const

@@ -102,9 +102,13 @@ void SceneManager::GenerateRandomSpheres(Scene &scene, unsigned count)
     }
 }
 
+// chy
 static std::shared_ptr<OrbitCameraComponent> CreateDefaultCamera()
 {
     CameraComponent::Attribute camera_attribute;
+    // chy:default to orthographic projection
+    camera_attribute.projection_type = ProjectionType::Orthographic;
+    camera_attribute.ortho_width = 20.0f;
 
     return std::make_shared<OrbitCameraComponent>(camera_attribute);
 }

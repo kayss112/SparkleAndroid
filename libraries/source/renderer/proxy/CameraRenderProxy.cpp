@@ -7,6 +7,7 @@
 
 namespace sparkle
 {
+// chy
 void CameraRenderProxy::Update(RHIContext *rhi, const CameraRenderProxy &camera, const RenderConfig &config)
 {
     RenderProxy::Update(rhi, camera, config);
@@ -15,9 +16,18 @@ void CameraRenderProxy::Update(RHIContext *rhi, const CameraRenderProxy &camera,
     {
         aspect_ratio_ = static_cast<float>(config.image_width) / static_cast<float>(config.image_height);
 
-        auto h = std::tan(state_.vertical_fov / 2.f);
-        focus_plane_.height = 2.f * h * state_.focus_distance;
-        focus_plane_.width = aspect_ratio_ * focus_plane_.height;
+        // chy:In orthogonal projection, the focal plane is a uniform grid.
+        if (state_.projection_type == ProjectionType::Orthographic)
+        {
+            focus_plane_.width = state_.ortho_width;
+            focus_plane_.height = focus_plane_.width / aspect_ratio_;
+        }
+        else
+        {
+            auto h = std::tan(state_.vertical_fov / 2.f);
+            focus_plane_.height = 2.f * h * state_.focus_distance;
+            focus_plane_.width = aspect_ratio_ * focus_plane_.height;
+        }
 
         SetupProjectionMatrix();
 
@@ -66,12 +76,28 @@ void CameraRenderProxy::ClearPixels()
     ASSERT(pixels_dirty_);
 
     pixels_dirty_ = false;
-}
 
+}
+// chy
 void CameraRenderProxy::SetupProjectionMatrix()
 {
-    const float theta = state_.vertical_fov * 0.5f;
     const float inv_range = 1.f / (far_ - near_);
+    // chy:Orthogonal projection matrix
+    if (state_.projection_type == ProjectionType::Orthographic)
+    {
+        float half_w = state_.ortho_width * 0.5f;
+        float half_h = half_w / aspect_ratio_;
+
+        projection_matrix_.setZero();
+        projection_matrix_(0, 0) = 1.f / half_w;
+        projection_matrix_(1, 1) = -1.f / half_h;
+        projection_matrix_(2, 2) = -inv_range;
+        projection_matrix_(2, 3) = -near_ * inv_range;
+        projection_matrix_(3, 3) = 1.f;
+        return;
+    }
+
+    const float theta = state_.vertical_fov * 0.5f;
     const float inv_tan = 1.f / std::tan(theta);
 
     projection_matrix_.setZero();
@@ -96,6 +122,7 @@ void CameraRenderProxy::InitRenderResources(RHIContext *rhi, const RenderConfig 
                                      "CameraViewBuffer");
 }
 
+// chy
 void CameraRenderProxy::OnTransformDirty(RHIContext *rhi)
 {
     RenderProxy::OnTransformDirty(rhi);
@@ -107,11 +134,22 @@ void CameraRenderProxy::OnTransformDirty(RHIContext *rhi)
 
     ASSERT(state_.focus_distance > 0);
 
+    // chy
+    // In orthogonal mode, the focal plane origin is fixed at the camera position (without considering the focus_distance offset).
     focus_plane_.max_u = posture_.right * focus_plane_.width;
     focus_plane_.max_v = posture_.up * focus_plane_.height;
 
-    focus_plane_.lower_left = posture_.position + posture_.front * state_.focus_distance - focus_plane_.max_u * .5f -
-                              focus_plane_.max_v * .5f;
+    // chy
+    if (state_.projection_type == ProjectionType::Orthographic)
+    {
+        // rays are parallel, lower_left based on the camera position
+        focus_plane_.lower_left = posture_.position - focus_plane_.max_u * .5f - focus_plane_.max_v * .5f;
+    }
+    else
+    {
+        focus_plane_.lower_left = posture_.position + posture_.front * state_.focus_distance -
+                                  focus_plane_.max_u * .5f - focus_plane_.max_v * .5f;
+    }
 
     view_matrix_ = utilities::ZUpToYUpMatrix() *
                    (transform.GetRotation() * Eigen::Translation<Scalar, 3>(-posture_.position)).matrix();

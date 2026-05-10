@@ -15,6 +15,7 @@ struct Camera
     float3 max_u;
     float3 max_v;
     float lensRadius;
+    uint projection_type; // chy:0=Perspective, 1=Orthographic
     uint2 resolution;
 };
 
@@ -417,16 +418,27 @@ float3 SamplePixel(RayDesc ray_desc)
         // invert Y
         uv.y = 1.0f - uv.y;
 
-        // depth of field
-        float2 lens_noise = UnitDisk() * camera.lensRadius;
-        float3 lens_offset = lens_noise.x * normalize(camera.max_u) + lens_noise.y * normalize(camera.max_v);
-
-        // setup the initial ray
+        // chy:perspective or orthographic ray generation
         RayDesc ray_desc;
-        ray_desc.Origin = camera.position + lens_offset;
-        ray_desc.Direction = normalize(camera.lowerLeft + uv.x * camera.max_u + uv.y * camera.max_v - ray_desc.Origin);
-        ray_desc.TMin = Tolerance;
-        ray_desc.TMax = 1000.0f;
+        // all rays have the same direction
+        if (camera.projection_type == 1) {
+            ray_desc.Origin = camera.lowerLeft + uv.x * camera.max_u + uv.y * camera.max_v;
+            ray_desc.Direction = normalize(cross(camera.max_v, camera.max_u));
+            ray_desc.TMin = 0.001f;
+            ray_desc.TMax = 1000.0f;
+        }
+        else
+        {
+            // depth of field
+            float2 lens_noise = UnitDisk() * camera.lensRadius;
+            float3 lens_offset = lens_noise.x * normalize(camera.max_u) + lens_noise.y * normalize(camera.max_v);
+
+            // setup the initial ray
+            ray_desc.Origin = camera.position + lens_offset;
+            ray_desc.Direction = normalize(camera.lowerLeft + uv.x * camera.max_u + uv.y * camera.max_v - ray_desc.Origin);
+            ray_desc.TMin = Tolerance;
+            ray_desc.TMax = 1000.0f;
+        }
 
         float3 this_pixel = SamplePixel(ray_desc);
 
