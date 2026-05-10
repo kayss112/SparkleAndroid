@@ -413,6 +413,10 @@ void VulkanContext::BeginFrame()
     }
     queue_finish_fences_for_image_[image_index] = queue_finish_fences_[frame_index];
 
+    // ensure the command buffer for this frame index is no longer in use before recording into it
+    CHECK_VK_ERROR(vkWaitForFences(device_, 1, &queue_finish_fences_[frame_index], VK_TRUE, UINT64_MAX));
+    CHECK_VK_ERROR(vkResetFences(device_, 1, &queue_finish_fences_[frame_index]));
+
     VkCommandBufferBeginInfo begin_info{};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     begin_info.flags = 0;                  // Optional
@@ -477,7 +481,6 @@ VkResult VulkanContext::EndFrame()
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = signal_semaphores;
 
-    vkResetFences(device_, 1, &queue_finish_fences_[frame_index]);
     CHECK_VK_ERROR(vkQueueSubmit(graphics_queue_, 1, &submit_info, queue_finish_fences_[frame_index]));
 
     VkPresentInfoKHR present_info{};

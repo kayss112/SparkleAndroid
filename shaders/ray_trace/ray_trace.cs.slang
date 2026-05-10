@@ -1,5 +1,4 @@
 #include "ray_trace.h.slang"
-
 #include "debug.h.slang"
 #include "directional_light.h.slang"
 #include "random.h.slang"

@@ -183,7 +183,7 @@ bool AppFramework::Init()
 
     renderer_created_subscription_ =
         render_framework_->ListenRendererCreatedEvent().Subscribe([this]() { renderer_ready_ = true; });
-
+    SceneManager::InitSceneList();
     scene_load_task_ = SceneManager::LoadScene(main_scene_.get(), Path::Resource(app_config_.scene),
                                                app_config_.default_skybox, render_config_.IsRaterizationMode());
 
