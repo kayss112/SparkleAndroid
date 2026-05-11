@@ -11,4 +11,6 @@ vulkan
 vcpkg
 AndroidSDK
 
-
+## 具体平台构建
+python build.py --framework glfw --config Release
+python build.py --framework android --config Release
