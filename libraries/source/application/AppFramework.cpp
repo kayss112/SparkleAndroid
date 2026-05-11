@@ -558,6 +558,7 @@ void AppFramework::DebugNextFrame()
 void AppFramework::ResetInputEvents()
 {
     current_pressing_ = false;
+    current_panning_ = false;
     ui_mouse_sequence_active_ = false;
     last_x_ = -1;
     last_y_ = -1;
@@ -594,17 +595,21 @@ bool AppFramework::ShouldConsumeSceneMouseInput(MouseInputType input_type, doubl
 
 void AppFramework::CancelScenePointerInteraction()
 {
-    if (!current_pressing_)
+    if (!current_pressing_ && !current_panning_)
     {
         return;
     }
 
     if (auto *camera = GetMainCamera())
     {
-        camera->OnPointerUp();
+        if (current_pressing_)
+        {
+            camera->OnPointerUp();
+        }
     }
 
     current_pressing_ = false;
+    current_panning_ = false;
 }
 
 void AppFramework::CursorPositionCallback(double xPos, double yPos)
@@ -627,6 +632,11 @@ void AppFramework::CursorPositionCallback(double xPos, double yPos)
     if (current_pressing_ && last_point.x() >= 0.f && last_point.y() >= 0.f)
     {
         camera->OnPointerMove(static_cast<float>(yPos) - last_point.y(), last_point.x() - static_cast<float>(xPos));
+    }
+
+    if (current_panning_ && last_point.x() >= 0.f && last_point.y() >= 0.f)
+    {
+        camera->OnPan(static_cast<float>(xPos) - last_point.x(), static_cast<float>(yPos) - last_point.y());
     }
 }
 
@@ -661,7 +671,7 @@ void AppFramework::ScrollCallback(double /*xoffset*/, double yoffset)
 void AppFramework::MouseButtonCallback(ClickButton button, KeyAction action, uint32_t mods)
 {
     MouseInputType input_type = MouseInputType::Move;
-    if (button == ClickButton::Primary_Left)
+    if (button == ClickButton::Primary_Left || button == ClickButton::Middle)
     {
         input_type = action == KeyAction::Press ? MouseInputType::Press : MouseInputType::Release;
     }
@@ -718,6 +728,11 @@ void AppFramework::MouseButtonCallback(ClickButton button, KeyAction action, uin
             DebugNextFrame();
             return;
         }
+    }
+
+    if (button == ClickButton::Middle)
+    {
+        current_panning_ = action == KeyAction::Press;
     }
 }
 

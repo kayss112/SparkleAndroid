@@ -25,6 +25,8 @@ static AppFramework::ClickButton GetClickButton(int button)
         return AppFramework::ClickButton::Primary_Left;
     case GLFW_MOUSE_BUTTON_RIGHT:
         return AppFramework::ClickButton::Secondary_Right;
+    case GLFW_MOUSE_BUTTON_MIDDLE:
+        return AppFramework::ClickButton::Middle;
     default:
         UnImplemented(button);
     }

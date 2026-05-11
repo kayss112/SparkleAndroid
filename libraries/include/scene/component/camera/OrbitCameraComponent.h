@@ -60,6 +60,18 @@ public:
         }
     }
 
+    void OnPan(float dx, float dy) override
+    {
+        const auto &transform = GetTransform();
+        const Vector3 right = transform.TransformDirection(Right).normalized();
+        const Vector3 up = transform.TransformDirection(Up).normalized();
+        const float pan_scale = radius_ * pan_sensitivity_;
+
+        center_ += (right * dx - up * dy) * pan_scale;
+
+        UpdateTransform();
+    }
+
     void OnScroll(float dx) override
     {
         auto new_radius = std::clamp((1.f + dx * sensitivity_) * radius_, .001f, 100.f);
@@ -86,5 +98,6 @@ private:
     bool is_dragging_ = false;
 
     const float sensitivity_ = 0.1f;
+    const float pan_sensitivity_ = 0.001f;
 };
 } // namespace sparkle

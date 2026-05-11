@@ -56,6 +56,10 @@ public:
     {
     }
 
+    virtual void OnPan(float, float)
+    {
+    }
+
     virtual void OnScroll(float)
     {
     }

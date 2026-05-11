@@ -36,6 +36,7 @@ public:
     {
         Primary_Left,
         Secondary_Right,
+        Middle,
         Count
     };
 
@@ -174,6 +175,7 @@ private:
 
     // event handler
     bool current_pressing_ = false;
+    bool current_panning_ = false;
     bool ui_mouse_sequence_active_ = false;
     float last_x_ = -1.f;
     float last_y_ = -1.f;
