@@ -23,7 +23,7 @@
 #include <imgui.h>
 namespace sparkle
 {
-static constexpr const char *DefaultSkyMapFile = "skymap/studio_garden.hdr";
+static constexpr const char *DefaultSkyMapFile = "skymap/Sky1.hdr";
 static std::vector<SceneNode *> debug_spheres;
 std::unordered_map<std::string, std::function<std::shared_ptr<TaskFuture<void>>(Scene*)>> SceneManager::SceneList;
 
@@ -206,7 +206,7 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
     //auto *scene_root = scene->GetRootNode();
 
     auto *main_camera = static_cast<OrbitCameraComponent *>(scene->GetMainCamera());
-    main_camera->Setup(Zeros, 25.f, 10.f, -20.f);
+    main_camera->Setup({0.f,1.0f,0.f}, 25.f, 10.f, -20.f);
 
     SceneManager::AddDefaultDirectionalLight(scene);
 
@@ -228,11 +228,11 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                           });
     model_tasks.emplace_back(BackGround);
 
-    auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Buttons.gltf"), scene)
+    auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Button.gltf"), scene)
                        ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                            if (node)
                            {
-                               node->SetTransform({0, -6.5, 5.0}, {0, 0, 0}, Ones * 2.f);
+                               node->SetTransform({0, -1.0f, -2.0f}, {0, 0, 0}, Ones * 2.f);
                                scene->GetRootNode()->AddChild(node);
                                node->Traverse([&glass_material](SceneNode *n) {
                                    for (auto &component : n->GetComponents())
@@ -260,7 +260,7 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene_2(Scene *scene)
     // auto *scene_root = scene->GetRootNode();
 
     auto *main_camera = static_cast<OrbitCameraComponent *>(scene->GetMainCamera());
-    main_camera->Setup(Zeros, 25.f, 10.f, -20.f);
+    main_camera->Setup({0.f,1.0f,0.f}, 25.f, 10.f, -20.f);
 
     SceneManager::AddDefaultDirectionalLight(scene);
 
@@ -272,7 +272,7 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene_2(Scene *scene)
     // models
     std::vector<std::shared_ptr<TaskFuture<>>> model_tasks;
 
-    auto BackGround = SceneDataFactory::Load(Path::Resource("models/Test/BackGround.gltf"), scene)
+    auto BackGround = SceneDataFactory::Load(Path::Resource("models/Test/BackGround2.gltf"), scene)
                           ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
                               if (node)
                               {
@@ -282,24 +282,24 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene_2(Scene *scene)
                           });
     model_tasks.emplace_back(BackGround);
 
-    //auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Button.gltf"), scene)
-    //                   ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
-    //                       if (node)
-    //                       {
-    //                           node->SetTransform({0, -1.0, -2.0}, {0, 0, 0}, Ones * 2.f);
-    //                           scene->GetRootNode()->AddChild(node);
-    //                           node->Traverse([&glass_material](SceneNode *n) {
-    //                               for (auto &component : n->GetComponents())
-    //                               {
-    //                                   if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
-    //                                   {
-    //                                       p->SetMaterial(glass_material);
-    //                                   }
-    //                               }
-    //                           });
-    //                       }
-    //                   });
-    //model_tasks.emplace_back(Buttons);
+    auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Button5.gltf"), scene)
+                       ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
+                           if (node)
+                           {
+                               node->SetTransform({0, 1.6f, 0}, {0, 0, 0}, Ones * 2.f);
+                               scene->GetRootNode()->AddChild(node);
+                               node->Traverse([&glass_material](SceneNode *n) {
+                                   for (auto &component : n->GetComponents())
+                                   {
+                                       if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
+                                       {
+                                           p->SetMaterial(glass_material);
+                                       }
+                                   }
+                               });
+                           }
+                       });
+    model_tasks.emplace_back(Buttons);
 
     auto models_loaded = TaskManager::OnAll(model_tasks);
     auto last_task_finished = models_loaded;
@@ -384,7 +384,7 @@ void SceneManager::AddDefaultDirectionalLight(Scene *scene)
     auto [dir_light_node, dir_light] =
         MakeNodeWithComponent<DirectionalLight>(scene, scene_root, "DefaultDirectionalLight");
 
-    dir_light->SetColor(Ones * 0.3f);
+    dir_light->SetColor(Ones * 0.5f);
     dir_light_node->SetTransform(Zeros, utilities::ToRadian(Vector3(45.7995f, -16.5189f, -37.9306f)));
 
     if (auto *sky_light = scene->GetSkyLight())
