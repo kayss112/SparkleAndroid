@@ -285,25 +285,27 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene_2(Scene *scene)
                               }
                           });
     model_tasks.emplace_back(BackGround);
-
-    //auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/Button.gltf"), scene)
-    //                   ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
-    //                       if (node)
-    //                       {
-    //                           node->SetTransform({0, -1.0, -2.0}, {0, 0, 0}, Ones * 2.f);
-    //                           scene->GetRootNode()->AddChild(node);
-    //                           node->Traverse([&glass_material](SceneNode *n) {
-    //                               for (auto &component : n->GetComponents())
-    //                               {
-    //                                   if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
-    //                                   {
-    //                                       p->SetMaterial(glass_material);
-    //                                   }
-    //                               }
-    //                           });
-    //                       }
-    //                   });
-    //model_tasks.emplace_back(Buttons);
+    
+    // add button
+    auto Buttons = SceneDataFactory::Load(Path::Resource("models/Test/buttonchy.gltf"), scene)
+                       ->Then([scene, glass_material](const std::shared_ptr<SceneNode> &node) {
+                           if (node)
+                           {
+                               node->SetTransform({0, -1.0, -2.0}, {0, 0, 0}, Ones * 2.f);
+                               scene->GetRootNode()->AddChild(node);
+                               node->Traverse([&glass_material](SceneNode *n) {
+                                   for (auto &component : n->GetComponents())
+                                   {
+                                       if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
+                                       {
+                                           p->SetMaterial(glass_material);
+                                       }
+                                   }
+                               });
+                           }
+                       });
+    model_tasks.emplace_back(Buttons);
+    // add button
 
     auto models_loaded = TaskManager::OnAll(model_tasks);
     auto last_task_finished = models_loaded;
