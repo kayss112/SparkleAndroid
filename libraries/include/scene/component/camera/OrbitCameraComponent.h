@@ -67,7 +67,7 @@ public:
         const Vector3 up = transform.TransformDirection(Up).normalized();
         const float pan_scale = radius_ * pan_sensitivity_;
 
-        center_ += (right * dx - up * dy) * pan_scale;
+        center_ += (right * dx + up * dy) * pan_scale;
 
         UpdateTransform();
     }
