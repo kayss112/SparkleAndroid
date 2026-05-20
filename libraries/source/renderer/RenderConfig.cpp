@@ -10,7 +10,7 @@
 namespace sparkle
 {
 static ConfigValue<std::string> config_pipeline("pipeline", "render pipeline", "renderer",
-                                                Enum2Str<RenderConfig::Pipeline::forward>(), true);
+                                                Enum2Str<RenderConfig::Pipeline::gpu>(), true);
 static ConfigValue<std::string> config_output_image("output_image", "output image", "renderer",
                                                     Enum2Str<RenderConfig::OutputImage::SceneColor>(), true);
 static ConfigValue<std::string> config_debug_mode("debug_mode", "debug mode", "renderer",

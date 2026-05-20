@@ -6,7 +6,7 @@
     "prepass": false,
     "progress": true,
     "rhi": "vulkan",
-    "scene": "",
+    "scene": "TestScene",
     "spp": 1,
     "ssao": false,
     "thread": 64,

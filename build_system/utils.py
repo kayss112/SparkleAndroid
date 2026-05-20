@@ -157,8 +157,11 @@ def robust_rmtree(path, max_retries=3, retry_delay=1.0):
     for attempt in range(max_retries):
         try:
             if is_windows:
-                # On Windows, use onexc callback to handle readonly files
-                shutil.rmtree(path, onexc=force_remove_readonly)
+                # On Windows, use onexc (3.12+) / onerror (older) callback for readonly files
+                if sys.version_info >= (3, 12):
+                    shutil.rmtree(path, onexc=force_remove_readonly)
+                else:
+                    shutil.rmtree(path, onerror=force_remove_readonly)
             else:
                 shutil.rmtree(path)
             return
