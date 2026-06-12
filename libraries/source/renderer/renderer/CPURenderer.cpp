@@ -10,6 +10,7 @@
 #include "renderer/pass/UiPass.h"
 #include "renderer/proxy/CameraRenderProxy.h"
 #include "renderer/proxy/MaterialRenderProxy.h"
+#include "renderer/proxy/MeshRenderProxy.h"
 #include "renderer/proxy/PrimitiveRenderProxy.h"
 #include "renderer/proxy/SceneRenderProxy.h"
 #include "renderer/proxy/SkyRenderProxy.h"
@@ -23,6 +24,12 @@ CPURenderer::CPURenderer(const RenderConfig &render_config, RHIContext *rhi_cont
       output_image_(image_size_.x(), image_size_.y(), PixelFormat::RGBAFloat16)
 {
     ASSERT_EQUAL(render_config.pipeline, RenderConfig::Pipeline::cpu);
+
+    SetCpuBvhDisabled(render_config.cpu_disable_bvh);
+    if (render_config.cpu_disable_bvh)
+    {
+        Log(Warn, "CPU BVH disabled: brute-forcing every triangle (perf testing).");
+    }
 }
 
 CPURenderer::~CPURenderer() = default;

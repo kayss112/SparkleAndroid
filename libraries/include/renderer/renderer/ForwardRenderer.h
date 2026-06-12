@@ -26,7 +26,7 @@ public:
 
     ~ForwardRenderer() override;
 
-private:
+protected:
     void Update() override;
 
     // return true if update is performed
@@ -35,6 +35,17 @@ private:
     void HandleSceneChanges();
 
     void RegisterBLAS(PrimitiveRenderProxy *primitive);
+
+    // Hook called after rasterization (mesh + sky) and before scene_color is read for post-processing.
+    // Subclasses (HybridRenderer) override this to draw ray-traced primitives and composite onto scene_color.
+    virtual void RenderRayTracedPrimitives()
+    {
+    }
+
+    // Hook called at the end of Update() so subclasses can refresh ray-tracing GPU resources.
+    virtual void UpdateRayTracingResources()
+    {
+    }
 
     RHIResourceRef<RHIImage> scene_color_;
     RHIResourceRef<RHIImage> scene_depth_;

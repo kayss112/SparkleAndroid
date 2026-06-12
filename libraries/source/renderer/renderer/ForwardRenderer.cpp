@@ -10,6 +10,7 @@
 #include "renderer/proxy/CameraRenderProxy.h"
 #include "renderer/proxy/DirectionalLightRenderProxy.h"
 #include "renderer/proxy/MeshRenderProxy.h"
+#include "renderer/proxy/PrimitiveRenderProxy.h"
 #include "renderer/proxy/SceneRenderProxy.h"
 #include "renderer/proxy/SkyRenderProxy.h"
 #include "renderer/resource/ImageBasedLighting.h"
@@ -22,7 +23,8 @@ ForwardRenderer::ForwardRenderer(const RenderConfig &render_config, RHIContext *
                                  SceneRenderProxy *scene_render_proxy)
     : Renderer(render_config, rhi_context, scene_render_proxy)
 {
-    ASSERT_EQUAL(render_config_.pipeline, RenderConfig::Pipeline::forward);
+    ASSERT(render_config_.pipeline == RenderConfig::Pipeline::forward ||
+           render_config_.pipeline == RenderConfig::Pipeline::hybrid);
 
     use_ray_tracing_ = render_config.IsRayTracingMode();
     use_prepass_ = render_config_.use_prepass;
@@ -112,6 +114,13 @@ void ForwardRenderer::InitRenderResources()
     }
     else
     {
+        // Hybrid mode also needs a TLAS for the dedicated ray-tracing pass that draws RT primitives,
+        // but the rasterization pass below uses the standard forward pixel shader.
+        if (render_config_.IsHybridMode())
+        {
+            tlas_ = rhi_->CreateTLAS("TLAS");
+        }
+
         if (resolve_prepass_depth_)
         {
             pbr_resources.prepass_depth_map = pre_pass_->GetOutput()->GetDepthImage();
@@ -124,6 +133,15 @@ void ForwardRenderer::InitRenderResources()
     if (!rhi_->IsHeadless())
     {
         ui_pass_ = PipelinePass::Create<UiPass>(render_config_, rhi_, screen_color_rt_);
+    }
+
+    // Hybrid mode: rasterization pass only draws raster primitives. RT primitives are handled
+    // by a separate ray-tracing pass (see HybridRenderer).
+    if (render_config_.IsHybridMode())
+    {
+        scene_color_pass_->SetPrimitiveFilter([](const PrimitiveRenderProxy *p) {
+            return p->GetRenderPath() != PrimitiveRenderProxy::RenderPath::RayTrace;
+        });
     }
 }
 
@@ -162,6 +180,9 @@ void ForwardRenderer::Render()
     {
         sky_box_pass_->Render();
     }
+
+    // Hybrid renderer: dispatch ray tracing for RT primitives and composite onto scene_color.
+    RenderRayTracedPrimitives();
 
     scene_color_->Transition({.target_layout = RHIImageLayout::Read,
                               .after_stage = RHIPipelineStage::ColorOutput,
@@ -304,11 +325,13 @@ void ForwardRenderer::Update()
     }
 
     tone_mapping_pass_->UpdateFrameData(render_config_, scene_render_proxy_);
+
+    UpdateRayTracingResources();
 }
 
 void ForwardRenderer::HandleSceneChanges()
 {
-    if (use_ray_tracing_)
+    if (use_ray_tracing_ || render_config_.IsHybridMode())
     {
         bool need_rebuild_tlas = false;
         std::unordered_set<uint32_t> primitives_to_update;
@@ -423,9 +446,20 @@ void ForwardRenderer::RegisterBLAS(PrimitiveRenderProxy *primitive)
     ASSERT(primitive->GetPrimitiveIndex() != UINT_MAX);
 
     const auto *mesh = primitive->As<MeshRenderProxy>();
-
     const auto &blas = mesh->GetAccelerationStructure();
-    tlas_->SetBLAS(blas.get(), primitive->GetPrimitiveIndex());
+
+    // Hybrid mode: every primitive is in the TLAS so secondary rays (reflections / refractions)
+    // can hit raster primitives. Instance masks separate primary visibility:
+    //   0x02 - RayTrace primitives, hit by the primary RT visibility test.
+    //   0x01 - Rasterize primitives, only hit by secondary rays.
+    // Non-hybrid modes use 0xFF for everything.
+    uint8_t mask = 0xFFu;
+    if (render_config_.IsHybridMode())
+    {
+        mask = (primitive->GetRenderPath() == PrimitiveRenderProxy::RenderPath::RayTrace) ? 0x02u : 0x01u;
+    }
+
+    tlas_->SetBLAS(blas.get(), primitive->GetPrimitiveIndex(), mask);
 }
 
 ForwardRenderer::~ForwardRenderer() = default;

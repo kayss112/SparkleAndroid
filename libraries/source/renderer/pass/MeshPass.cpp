@@ -47,6 +47,10 @@ void MeshPass::Render()
 {
     for (auto *primitive : scene_proxy_->GetPrimitives())
     {
+        if (primitive_filter_ && !primitive_filter_(primitive))
+        {
+            continue;
+        }
         auto *proxy = static_cast<MeshRenderProxy *>(primitive);
         proxy->Render(rhi_, pipeline_states_[primitive->GetPrimitiveIndex()]);
     }

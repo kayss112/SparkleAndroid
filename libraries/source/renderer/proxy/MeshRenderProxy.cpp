@@ -21,6 +21,18 @@
 
 namespace sparkle
 {
+// Perf-testing switch: when true, CPU ray intersection brute-forces every triangle instead of
+// traversing the BVH. Set from RenderConfig::cpu_disable_bvh via SetCpuBvhDisabled().
+namespace
+{
+bool g_cpu_disable_bvh = false;
+}
+
+void SetCpuBvhDisabled(bool disabled)
+{
+    g_cpu_disable_bvh = disabled;
+}
+
 class BLAS
 {
 public:
@@ -98,6 +110,24 @@ private:
         // the cost is higher intersection test cost
         auto inverse_transform = transform.GetInverse();
         auto local_ray = world_ray.TransformedBy(inverse_transform);
+
+        // perf-testing path: brute-force every triangle, no BVH traversal.
+        if (g_cpu_disable_bvh)
+        {
+            bool hit = false;
+            for (uint32_t i = 0; i < static_cast<uint32_t>(triangles_.size()); ++i)
+            {
+                if (IntersectTriangle<AnyHit>(world_ray, local_ray, transform, candidate, i))
+                {
+                    hit = true;
+                    if constexpr (AnyHit)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return hit;
+        }
 
         static constexpr size_t InvalidId = std::numeric_limits<size_t>::max();
         static constexpr size_t StackSize = 32;
@@ -216,10 +246,10 @@ void MeshRenderProxy::InitRenderResources(RHIContext *rhi, const RenderConfig &c
     PrimitiveRenderProxy::InitRenderResources(rhi, config);
 
     const RHIBuffer::BufferUsage ray_tracing_usages =
-        config.IsRayTracingMode() ? RHIBuffer::BufferUsage::StorageBuffer : RHIBuffer::BufferUsage::None;
+        config.NeedsAccelerationStructure() ? RHIBuffer::BufferUsage::StorageBuffer : RHIBuffer::BufferUsage::None;
 
     const RHIBuffer::BufferUsage blas_usages =
-        config.IsRayTracingMode()
+        config.NeedsAccelerationStructure()
             ? (RHIBuffer::BufferUsage::DeviceAddress | RHIBuffer::BufferUsage::AccelerationStructureBuildInput)
             : RHIBuffer::BufferUsage::None;
 
@@ -265,7 +295,7 @@ void MeshRenderProxy::InitRenderResources(RHIContext *rhi, const RenderConfig &c
                               .is_dynamic = false},
                              "ModelUBO");
 
-    if (config.IsRayTracingMode())
+    if (config.NeedsAccelerationStructure())
     {
         blas_ = rhi->CreateBLAS(GetTransform().GetMatrix(), GetVertexBuffer(), GetIndexBuffer(), GetNumFaces(),
                                 GetNumVertices(), "MeshBLAS");

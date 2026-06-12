@@ -53,6 +53,10 @@ public:
         return primitives_;
     }
 
+    // Subsets filtered by per-primitive RenderPath. Computed on demand; cheap for typical scenes.
+    [[nodiscard]] std::vector<PrimitiveRenderProxy *> GetRasterPrimitives() const;
+    [[nodiscard]] std::vector<PrimitiveRenderProxy *> GetRayTracePrimitives() const;
+
     // get the change list this frame. it is guaranteed to be valid for only one frame.
     [[nodiscard]] const auto &GetPrimitiveChangeList() const
     {

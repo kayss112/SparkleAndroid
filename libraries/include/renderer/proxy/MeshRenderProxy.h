@@ -10,6 +10,9 @@ namespace sparkle
 struct Mesh;
 class BLAS;
 
+// Perf-testing switch: disable CPU BVH traversal and brute-force every triangle instead.
+void SetCpuBvhDisabled(bool disabled);
+
 class MeshRenderProxy : public PrimitiveRenderProxy
 {
 public:

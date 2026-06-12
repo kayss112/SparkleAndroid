@@ -58,7 +58,7 @@ void MaterialRenderProxy::InitRenderResources(RHIContext *rhi, const RenderConfi
         return;
     }
 
-    use_bindless_ = config.IsRayTracingMode();
+    use_bindless_ = config.NeedsAccelerationStructure();
 
     auto name = raw_material_.name;
 

@@ -438,6 +438,26 @@ float3 SamplePixel(RayDesc ray_desc)
     float moving_average = (float)total_sample_count / (total_sample_count + spp);
     all_samples = lerp(this_samples / float(spp), all_samples, moving_average);
 
+    // Trace one extra primary ray purely to know whether this pixel hit a RayTrace primitive.
+    // The InclusionMask 0x02 selects only RT instances in hybrid mode (see HybridRenderer).
+    // In non-hybrid (gpu) mode, all instances use mask 0xFF so this query also hits everything.
+    // The alpha channel is used by HybridRenderer to alpha-blend ray-traced primitives onto
+    // the rasterization result. GPURenderer ignores alpha when tone-mapping so this is safe.
+    float center_uv_x = (float(pixel.x) + 0.5f) * pixel_size.x;
+    float center_uv_y = 1.0f - (float(pixel.y) + 0.5f) * pixel_size.y;
+    RayDesc hit_check_ray;
+    hit_check_ray.Origin = camera.position;
+    hit_check_ray.Direction =
+        normalize(camera.lowerLeft + center_uv_x * camera.max_u + center_uv_y * camera.max_v - hit_check_ray.Origin);
+    hit_check_ray.TMin = Tolerance;
+    hit_check_ray.TMax = 1000.0f;
+    RayQuery<RAY_FLAG_NONE> hit_check_query;
+    hit_check_query.TraceRayInline(tlas, RAY_FLAG_NONE, 0x02u, hit_check_ray);
+    while (hit_check_query.Proceed())
+    {
+    }
+    float hit_alpha = (hit_check_query.CommittedStatus() == COMMITTED_TRIANGLE_HIT) ? 1.0f : 0.0f;
+
     // output
-    imageData[pixel] = float4(all_samples, 1.f);
+    imageData[pixel] = float4(all_samples, hit_alpha);
 }

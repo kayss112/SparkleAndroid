@@ -184,7 +184,7 @@ void SceneRenderProxy::InitRenderResources(RHIContext *rhi, const RenderConfig &
 
     bindless_manager_ = std::make_unique<BindlessManager>(this);
 
-    if (config.IsRayTracingMode())
+    if (config.NeedsAccelerationStructure())
     {
         bindless_manager_->InitRenderResources(rhi);
     }
@@ -377,5 +377,33 @@ void SceneRenderProxy::RemoveMaterial(MaterialRenderProxy *material)
     deleted_materials_.emplace_back(std::move(materials_[material_id]));
 
     material->SetIndex(UINT_MAX);
+}
+
+std::vector<PrimitiveRenderProxy *> SceneRenderProxy::GetRasterPrimitives() const
+{
+    std::vector<PrimitiveRenderProxy *> out;
+    out.reserve(primitives_.size());
+    for (auto *p : primitives_)
+    {
+        if (p && p->GetRenderPath() == PrimitiveRenderProxy::RenderPath::Rasterize)
+        {
+            out.push_back(p);
+        }
+    }
+    return out;
+}
+
+std::vector<PrimitiveRenderProxy *> SceneRenderProxy::GetRayTracePrimitives() const
+{
+    std::vector<PrimitiveRenderProxy *> out;
+    out.reserve(primitives_.size());
+    for (auto *p : primitives_)
+    {
+        if (p && p->GetRenderPath() == PrimitiveRenderProxy::RenderPath::RayTrace)
+        {
+            out.push_back(p);
+        }
+    }
+    return out;
 }
 } // namespace sparkle

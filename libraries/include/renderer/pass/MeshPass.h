@@ -4,11 +4,18 @@
 
 #include "rhi/RHIPIpelineState.h"
 
+#include <functional>
+
 namespace sparkle
 {
+class PrimitiveRenderProxy;
+
 class MeshPass : public PipelinePass
 {
 public:
+    // Predicate: return true to render this primitive, false to skip it.
+    using PrimitiveFilter = std::function<bool(const PrimitiveRenderProxy *)>;
+
     MeshPass(RHIContext *ctx, SceneRenderProxy *scene_proxy) : PipelinePass(ctx), scene_proxy_(scene_proxy)
     {
     }
@@ -25,10 +32,17 @@ public:
 
     virtual void HandleMovedPrimitive(uint32_t from, uint32_t to);
 
+    void SetPrimitiveFilter(PrimitiveFilter filter)
+    {
+        primitive_filter_ = std::move(filter);
+    }
+
 protected:
     SceneRenderProxy *scene_proxy_;
 
     std::vector<RHIResourceRef<RHIPipelineState>> pipeline_states_;
+
+    PrimitiveFilter primitive_filter_;
 
     bool initialized_ = false;
 };

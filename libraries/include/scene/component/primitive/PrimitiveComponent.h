@@ -11,6 +11,15 @@ class Material;
 class PrimitiveComponent : public RenderableComponent
 {
 public:
+    // Per-primitive render path. Used by HybridRenderer to route a primitive
+    // to either rasterization or ray tracing. For non-hybrid pipelines this is ignored.
+    enum class RenderPath : uint8_t
+    {
+        Default,    // follow the global pipeline
+        Rasterize,  // force rasterization
+        RayTrace,   // force ray tracing
+    };
+
     PrimitiveComponent(const Vector3 &center, const Vector3 &size);
 
     ~PrimitiveComponent() override;
@@ -42,6 +51,13 @@ public:
         return local_bound_;
     }
 
+    void SetRenderPath(RenderPath path);
+
+    [[nodiscard]] RenderPath GetRenderPath() const
+    {
+        return render_path_;
+    }
+
 protected:
     void OnTransformChange() override;
 
@@ -49,5 +65,7 @@ protected:
 
     AABB local_bound_;
     AABB world_bound_;
+
+    RenderPath render_path_ = RenderPath::Default;
 };
 } // namespace sparkle

@@ -10,7 +10,7 @@
 namespace sparkle
 {
 static ConfigValue<std::string> config_pipeline("pipeline", "render pipeline", "renderer",
-                                                Enum2Str<RenderConfig::Pipeline::gpu>(), true);
+                                                Enum2Str<RenderConfig::Pipeline::hybrid>(), true);
 static ConfigValue<std::string> config_output_image("output_image", "output image", "renderer",
                                                     Enum2Str<RenderConfig::OutputImage::SceneColor>(), true);
 static ConfigValue<std::string> config_debug_mode("debug_mode", "debug mode", "renderer",
@@ -36,6 +36,9 @@ static ConfigValue<float> config_gpu_budget_ratio("gpu_time_budget_ratio", "GPU 
 static ConfigValue<bool> config_enable_nee("enable_nee", "enable next event estimation", "renderer", false, true);
 static ConfigValue<bool> config_clear_screenshots("clear_screenshots", "clear all existing screenshots", "renderer",
                                                   false);
+static ConfigValue<bool> config_cpu_disable_bvh("cpu_disable_bvh",
+                                                "disable cpu bvh and brute-force every triangle (perf testing)",
+                                                "renderer", false, true);
 
 void RenderConfig::Init()
 {
@@ -58,6 +61,7 @@ void RenderConfig::Init()
     ConfigCollectionHelper::RegisterConfig(this, config_gpu_budget_ratio, gpu_time_budget_ratio);
     ConfigCollectionHelper::RegisterConfig(this, config_enable_nee, enable_nee);
     ConfigCollectionHelper::RegisterConfig(this, config_clear_screenshots, clear_screenshots);
+    ConfigCollectionHelper::RegisterConfig(this, config_cpu_disable_bvh, cpu_disable_bvh);
     Validate();
 }
 
@@ -67,6 +71,7 @@ static RenderConfig::Pipeline GetFallbackRenderMode(RenderConfig::Pipeline mode)
     {
     case RenderConfig::Pipeline::gpu:
     case RenderConfig::Pipeline::deferred:
+    case RenderConfig::Pipeline::hybrid:
         return RenderConfig::Pipeline::forward;
     default:
         return mode;
@@ -75,7 +80,7 @@ static RenderConfig::Pipeline GetFallbackRenderMode(RenderConfig::Pipeline mode)
 
 void RenderConfig::Validate()
 {
-    if (rhi_ != nullptr && IsRayTracingMode())
+    if (rhi_ != nullptr && NeedsAccelerationStructure())
     {
         if (!rhi_->SupportsHardwareRayTracing())
         {

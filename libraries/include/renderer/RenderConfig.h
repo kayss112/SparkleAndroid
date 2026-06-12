@@ -17,6 +17,7 @@ struct RenderConfig : public ConfigCollection
         // forward_rt,
         deferred,
         // deferred_rt,
+        hybrid, // rasterization for raster primitives + ray tracing for RT primitives
     };
 
     enum class OutputImage : uint8_t
@@ -55,7 +56,18 @@ struct RenderConfig : public ConfigCollection
 
     [[nodiscard]] bool IsRaterizationMode() const
     {
-        return pipeline == Pipeline::forward || pipeline == Pipeline::deferred;
+        return pipeline == Pipeline::forward || pipeline == Pipeline::deferred || pipeline == Pipeline::hybrid;
+    }
+
+    [[nodiscard]] bool IsHybridMode() const
+    {
+        return pipeline == Pipeline::hybrid;
+    }
+
+    // True if the pipeline needs a TLAS (gpu or hybrid).
+    [[nodiscard]] bool NeedsAccelerationStructure() const
+    {
+        return pipeline == Pipeline::gpu || pipeline == Pipeline::hybrid;
     }
 
     void Init();
@@ -86,6 +98,7 @@ struct RenderConfig : public ConfigCollection
     bool use_dynamic_spp;
     bool enable_nee;
     bool clear_screenshots;
+    bool cpu_disable_bvh = false;
     float target_framerate;
     float gpu_time_budget_ratio;
 

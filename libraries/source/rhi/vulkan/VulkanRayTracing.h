@@ -78,6 +78,7 @@ private:
     RHIResourceRef<RHIBuffer> instance_buffer_;
     RHIResourceRef<RHIBuffer> scratch_buffer_;
     VkAccelerationStructureKHR acceleration_structure_ = nullptr;
+    uint32_t num_active_instances_ = 0;
 };
 } // namespace sparkle
 

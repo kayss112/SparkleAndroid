@@ -14,6 +14,14 @@ class MaterialRenderProxy;
 class PrimitiveRenderProxy : public RenderProxy
 {
 public:
+    // Mirror of PrimitiveComponent::RenderPath on the render thread.
+    enum class RenderPath : uint8_t
+    {
+        Default,
+        Rasterize,
+        RayTrace,
+    };
+
     explicit PrimitiveRenderProxy(std::string_view name, AABB local_bound);
 
     ~PrimitiveRenderProxy() override;
@@ -47,6 +55,16 @@ public:
         primitive_index_ = primitive_index;
     }
 
+    void SetRenderPath(RenderPath path)
+    {
+        render_path_ = path;
+    }
+
+    [[nodiscard]] RenderPath GetRenderPath() const
+    {
+        return render_path_;
+    }
+
     virtual bool Intersect(const Ray &ray, IntersectionCandidate &canidate) const = 0;
 
     virtual bool IntersectAnyHit(const Ray &ray, IntersectionCandidate &candidate) const = 0;
@@ -76,5 +94,7 @@ private:
     AABB world_bound_;
 
     std::string_view name_;
+
+    RenderPath render_path_ = RenderPath::Default;
 };
 } // namespace sparkle

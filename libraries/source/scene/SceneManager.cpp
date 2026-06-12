@@ -224,6 +224,16 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                               {
                                   node->SetTransform({0, 0, 0}, {0, 0, 0}, Ones * 2.f);
                                   scene->GetRootNode()->AddChild(node);
+                                  // Hybrid render: BackGround uses rasterization for performance.
+                                  node->Traverse([](SceneNode *n) {
+                                      for (auto &component : n->GetComponents())
+                                      {
+                                          if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
+                                          {
+                                              p->SetRenderPath(PrimitiveComponent::RenderPath::Rasterize);
+                                          }
+                                      }
+                                  });
                               }
                           });
     model_tasks.emplace_back(BackGround);
@@ -240,6 +250,8 @@ static std::shared_ptr<TaskFuture<>> LoadVivoTestScene(Scene *scene)
                                        if (auto *p = dynamic_cast<PrimitiveComponent *>(component.get()))
                                        {
                                            p->SetMaterial(glass_material);
+                                           // Hybrid render: Button uses ray tracing for glass material.
+                                           p->SetRenderPath(PrimitiveComponent::RenderPath::RayTrace);
                                        }
                                    }
                                });

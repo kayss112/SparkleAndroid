@@ -59,10 +59,18 @@ public:
 
     void SetBLAS(RHIBLAS *blas, unsigned primitive_id)
     {
+        SetBLAS(blas, primitive_id, 0xFFu);
+    }
+
+    void SetBLAS(RHIBLAS *blas, unsigned primitive_id, uint8_t instance_mask)
+    {
         if (all_blas_.size() < primitive_id + 1)
         {
             all_blas_.resize(primitive_id + 1);
+            instance_masks_.resize(primitive_id + 1, 0xFFu);
         }
+
+        instance_masks_[primitive_id] = instance_mask;
 
         if (all_blas_[primitive_id] == blas)
         {
@@ -80,8 +88,14 @@ public:
         return all_blas_;
     }
 
+    [[nodiscard]] uint8_t GetInstanceMask(unsigned primitive_id) const
+    {
+        return primitive_id < instance_masks_.size() ? instance_masks_[primitive_id] : 0xFFu;
+    }
+
 protected:
     // the array may not be contiguous. do validate when iterating through it.
     std::vector<RHIBLAS *> all_blas_;
+    std::vector<uint8_t> instance_masks_;
 };
 } // namespace sparkle

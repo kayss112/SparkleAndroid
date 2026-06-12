@@ -81,6 +81,32 @@ void PrimitiveComponent::RecreateRenderProxy()
 {
     RenderableComponent::RecreateRenderProxy();
 
-    GetRenderProxy()->As<PrimitiveRenderProxy>()->SetMaterialRenderProxy(material_->GetRenderProxy());
+    auto *proxy = GetRenderProxy()->As<PrimitiveRenderProxy>();
+    proxy->SetMaterialRenderProxy(material_->GetRenderProxy());
+    proxy->SetRenderPath(static_cast<PrimitiveRenderProxy::RenderPath>(render_path_));
+}
+
+void PrimitiveComponent::SetRenderPath(RenderPath path)
+{
+    if (render_path_ == path)
+    {
+        return;
+    }
+
+    render_path_ = path;
+
+    if (!node_ || !node_->IsInScene() || !material_)
+    {
+        // proxy is not created yet. it will pick up the value on creation.
+        return;
+    }
+
+    TaskManager::RunInRenderThread([this, path]() {
+        if (auto *proxy = GetRenderProxy())
+        {
+            proxy->As<PrimitiveRenderProxy>()->SetRenderPath(
+                static_cast<PrimitiveRenderProxy::RenderPath>(path));
+        }
+    });
 }
 } // namespace sparkle

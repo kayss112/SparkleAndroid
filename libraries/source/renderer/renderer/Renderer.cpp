@@ -7,6 +7,7 @@
 #include "renderer/renderer/DeferredRenderer.h"
 #include "renderer/renderer/ForwardRenderer.h"
 #include "renderer/renderer/GPURenderer.h"
+#include "renderer/renderer/HybridRenderer.h"
 #include "rhi/RHI.h"
 
 #include <filesystem>
@@ -33,6 +34,9 @@ std::unique_ptr<Renderer> Renderer::CreateRenderer(const RenderConfig &render_co
         break;
     case RenderConfig::Pipeline::deferred:
         renderer = std::make_unique<DeferredRenderer>(render_config, rhi_context, scene_render_proxy);
+        break;
+    case RenderConfig::Pipeline::hybrid:
+        renderer = std::make_unique<HybridRenderer>(render_config, rhi_context, scene_render_proxy);
         break;
     default:
         UnImplemented(render_config.pipeline);

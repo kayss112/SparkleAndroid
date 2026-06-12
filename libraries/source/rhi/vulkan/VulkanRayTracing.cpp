@@ -8,6 +8,8 @@
 #include "VulkanContext.h"
 #include "VulkanDescriptorSet.h"
 
+#include <algorithm>
+
 namespace sparkle
 {
 void VulkanBLAS::Build()
@@ -111,9 +113,11 @@ void VulkanTLAS::Build()
 {
     const size_t num_meshes = all_blas_.size();
 
-    // create instances for our meshes
+    // Create dense instance list, skipping primitive slots without a BLAS.
+    // This is required for hybrid pipelines where some primitives (rasterized) are not in TLAS.
+    // instanceCustomIndex preserves the original primitive id so shaders can still index by it.
     std::vector<VkAccelerationStructureInstanceKHR> instances;
-    instances.resize(num_meshes);
+    instances.reserve(num_meshes);
     for (auto primitive_id = 0u; primitive_id < num_meshes; primitive_id++)
     {
         auto *blas = RHICast<VulkanBLAS>(all_blas_[primitive_id]);
@@ -128,9 +132,16 @@ void VulkanTLAS::Build()
             blas->Build();
         }
 
-        auto &instance = instances[primitive_id];
-        instance = blas->GetDescriptor();
+        auto instance = blas->GetDescriptor();
         instance.instanceCustomIndex = primitive_id;
+        instance.mask = GetInstanceMask(primitive_id);
+        instances.push_back(instance);
+    }
+
+    if (instances.empty())
+    {
+        // Nothing to ray trace. Skip building to avoid driver issues with empty TLAS.
+        return;
     }
 
     context->GetRHI()->RecreateBuffer(
@@ -143,6 +154,8 @@ void VulkanTLAS::Build()
 
     instance_buffer_->UploadImmediate(instances.data());
 
+    num_active_instances_ = static_cast<uint32_t>(instances.size());
+
     BuildInternal(true);
 
     context->SetDebugInfo(reinterpret_cast<uint64_t>(acceleration_structure_),
@@ -151,6 +164,16 @@ void VulkanTLAS::Build()
 
 void VulkanTLAS::Update(const std::unordered_set<uint32_t> &instances_to_update)
 {
+    // If the TLAS uses a dense layout (some BLAS slots are null, e.g. hybrid pipeline),
+    // primitive_id cannot index into instance_buffer_ directly. Fall back to a full rebuild.
+    const bool has_holes = std::any_of(all_blas_.begin(), all_blas_.end(),
+                                       [](const auto &b) { return b == nullptr; });
+    if (has_holes)
+    {
+        Build();
+        return;
+    }
+
     auto *instance_data = reinterpret_cast<VkAccelerationStructureInstanceKHR *>(instance_buffer_->Lock());
 
     for (auto primitive_id : instances_to_update)
@@ -206,7 +229,8 @@ void VulkanTLAS::BuildInternal(bool rebuild)
     build_info.geometryCount = 1;
     build_info.pGeometries = &tlas_geo_info;
 
-    const auto num_instances = static_cast<uint32_t>(all_blas_.size());
+    const auto num_instances = num_active_instances_ > 0 ? num_active_instances_
+                                                          : static_cast<uint32_t>(all_blas_.size());
 
     if (rebuild)
     {
